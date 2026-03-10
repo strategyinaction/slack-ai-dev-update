@@ -1,0 +1,23 @@
+{
+  "github_releases": [
+    "anthropics/claude-code",
+    "anthropics/claude-code-action",
+    "cursor/cursor"
+  ],
+  "rss_feeds": [
+    "https://github.blog/ai-and-ml/github-copilot/feed/",
+    "https://simonwillison.net/atom/everything/",
+    "https://changelog.com/feed"
+  ],
+  "reddit_searches": [
+    "https://www.reddit.com/r/ChatGPTCoding/search.rss?q=title:(Cursor OR Copilot OR Claude+Code OR Antigravity)&restrict_sr=1&sort=new",
+    "https://www.reddit.com/r/cursor/new.rss"
+  ],
+  "hn_queries": [
+    "Cursor IDE",
+    "Claude Code",
+    "GitHub Copilot",
+    "Antigravity IDE",
+    "AI coding agent"
+  ]
+}
