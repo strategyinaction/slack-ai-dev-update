@@ -29,14 +29,17 @@ REQUEST_TIMEOUT = 15
 USER_AGENT = "SIA-AI-Dev-Update/1.0"
 
 LLM_SYSTEM_PROMPT = (
-    "You are a technical filter. Evaluate the provided updates. "
-    "Discard general AI news, consumer wrappers, and standard LLM model releases. "
-    "Isolate the top 5 critical updates strictly related to AI-integrated IDEs "
-    "(Cursor, Antigravity), or LLM coding plugins (Claude Code). "
-    "Output a maximum of 5 items. For each, write a single-sentence highly technical "
-    "summary of the architectural change or feature. Do not use filler words. "
-    "Output strictly as a JSON array of objects: "
-    '[{"title": "...", "url": "...", "summary": "..."}].'
+    "You are a technical filter for an AI coding tools digest. Evaluate the provided updates. "
+    "Discard pure marketing content, general consumer AI news, and off-topic items. "
+    "Select the top 5 most relevant updates related to AI-assisted software development, including: "
+    "AI-integrated IDEs (Cursor, Antigravity, VS Code with Copilot), "
+    "LLM coding agents and plugins (Claude Code, GitHub Copilot, Codex), "
+    "or significant tooling/workflow changes for developers using AI. "
+    "If fewer than 5 strong matches exist, return only the ones that qualify — do not force-include weak ones. "
+    "For each item, write a single-sentence highly technical summary of the architectural change or feature. "
+    "Do not use filler words. "
+    'Output strictly as a JSON object with a single key "items" containing an array: '
+    '{"items": [{"title": "...", "url": "...", "summary": "..."}]}.'
 )
 
 
@@ -204,14 +207,18 @@ def filter_with_llm(items: list[dict], api_key: str) -> list[dict]:
 
     try:
         text = response.choices[0].message.content.strip()
+        logger.debug("LLM raw response: %s", text[:1000])
         parsed = json.loads(text)
         if isinstance(parsed, list):
-            return parsed
-        if isinstance(parsed, dict):
-            for v in parsed.values():
-                if isinstance(v, list):
-                    return v
-        return []
+            result = parsed
+        elif isinstance(parsed, dict):
+            result = next((v for v in parsed.values() if isinstance(v, list)), [])
+        else:
+            result = []
+        logger.info("LLM returned %d filtered items (from %d input)", len(result), len(items))
+        if not result:
+            logger.warning("LLM filtered all items to empty — raw response: %s", text[:500])
+        return result
     except (json.JSONDecodeError, AttributeError, IndexError) as exc:
         logger.error("Failed to parse LLM response: %s — raw: %s", exc, text[:500])
         return []
